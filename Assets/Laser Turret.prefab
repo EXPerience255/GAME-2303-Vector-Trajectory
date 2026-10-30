@@ -1357,6 +1357,7 @@ MonoBehaviour:
   turretBase: {fileID: 7319960332665357401}
   barrelEnd: {fileID: 2949424573658633281}
   line: {fileID: 8629476504871648233}
+  maxBounces: 0
 --- !u!120 &8629476504871648233
 LineRenderer:
   serializedVersion: 3

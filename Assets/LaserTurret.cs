@@ -11,6 +11,7 @@ public class LaserTurret : MonoBehaviour
     [SerializeField] Transform turretBase;
     [SerializeField] Transform barrelEnd;
     [SerializeField] LineRenderer line;
+    [SerializeField] int maxBounces;
 
     List<Vector3> laserPoints = new List<Vector3>();
 
@@ -21,30 +22,35 @@ public class LaserTurret : MonoBehaviour
 
         laserPoints.Clear();
         laserPoints.Add(barrelEnd.position);
-
-        if (Physics.Raycast(barrelEnd.position, barrelEnd.forward, out RaycastHit hit, 1000.0f, targetLayer))
-        {
-            laserPoints.Add(hit.point);
-
-            float dot = Vector3.Dot(barrelEnd.forward, hit.normal) * -2;
-            Vector3 reflect = new Vector3
-            {
-                x = barrelEnd.forward.x + hit.normal.x * dot,
-                y = barrelEnd.forward.y + hit.normal.y * dot,
-                z = barrelEnd.forward.z + hit.normal.z * dot
-            };
-            reflect = reflect.normalized;
-
-            if (Physics.Raycast(hit.point, reflect, out RaycastHit hit2, 1000.0f, targetLayer)) laserPoints.Add(hit2.point);
-            else laserPoints.Add(hit.point + reflect * 1000);
-        }
-        else laserPoints.Add(barrelEnd.position + barrelEnd.forward * 1000);
+        GenerateLine(barrelEnd.position, barrelEnd.forward);
 
         line.positionCount = laserPoints.Count;
         for(int i = 0; i < line.positionCount; i++)
         {
             line.SetPosition(i, laserPoints[i]);
         }
+    }
+
+    private void GenerateLine(Vector3 stepPosition, Vector3 stepDirection, int bounces = 0)
+    {
+        if (bounces > maxBounces) return;
+
+        if (Physics.Raycast(stepPosition, stepDirection, out RaycastHit hit, 1000.0f, targetLayer))
+        {
+            laserPoints.Add(hit.point);
+
+            float dot = Vector3.Dot(stepDirection, hit.normal) * -2;
+            Vector3 reflect = new Vector3
+            {
+                x = stepDirection.x + hit.normal.x * dot,
+                y = stepDirection.y + hit.normal.y * dot,
+                z = stepDirection.z + hit.normal.z * dot
+            };
+            reflect = reflect.normalized;
+
+            GenerateLine(hit.point, reflect, bounces + 1);
+        }
+        else laserPoints.Add(stepPosition + stepDirection * 1000);
     }
 
     void TrackMouse()
